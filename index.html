@@ -217,6 +217,11 @@
     let results = new Array(7).fill('?');
     let isRolling = false;
 
+    // References to text spans and badge elements (stable, no recreation)
+    const dieTextEls = [];
+    const dieBadgeEls = [];
+    const dieEls = [];
+
     // Build dice UI
     const tray = document.getElementById('diceTray');
 
@@ -230,17 +235,16 @@
 
       const die = document.createElement('div');
       die.className = `die die-${i}`;
-      die.id = `die-${i}`;
-      die.textContent = '?';
 
-      // Duplicate badge
+      // Use a span for text so we never destroy badge
+      const textSpan = document.createElement('span');
+      textSpan.textContent = '?';
+      die.appendChild(textSpan);
+
       const badge = document.createElement('div');
       badge.className = 'dup-badge';
-      badge.id = `dup-${i}`;
-      badge.textContent = '2x';
       die.appendChild(badge);
 
-      // Click individual die to re-roll just that one
       die.addEventListener('click', (e) => {
         e.stopPropagation();
         rollSingleDie(i);
@@ -249,6 +253,10 @@
       wrapper.appendChild(label);
       wrapper.appendChild(die);
       tray.appendChild(wrapper);
+
+      dieEls.push(die);
+      dieTextEls.push(textSpan);
+      dieBadgeEls.push(badge);
     });
 
     function rollOneDie(index) {
@@ -257,18 +265,14 @@
     }
 
     function updateDuplicates() {
-      // Find duplicate coordinates
       const counts = {};
-      results.forEach((r, i) => {
-        if (r !== '?' && r !== '...') {
-          counts[r] = (counts[r] || 0) + 1;
-        }
+      results.forEach(r => {
+        if (r && r !== '?') counts[r] = (counts[r] || 0) + 1;
       });
-
       results.forEach((r, i) => {
-        const badge = document.getElementById(`dup-${i}`);
-        if (r !== '?' && r !== '...' && counts[r] > 1) {
-          badge.textContent = `${counts[r]}x`;
+        const badge = dieBadgeEls[i];
+        if (r && r !== '?' && counts[r] > 1) {
+          badge.textContent = counts[r] + 'x';
           badge.classList.add('visible');
         } else {
           badge.classList.remove('visible');
@@ -277,37 +281,27 @@
     }
 
     function animateDie(index, finalValue, delay) {
-      const dieEl = document.getElementById(`die-${index}`);
+      const die = dieEls[index];
+      const textEl = dieTextEls[index];
       const faces = DICE[index];
 
-      dieEl.classList.remove('rolling');
-      void dieEl.offsetWidth;
-      dieEl.classList.add('rolling');
+      die.classList.remove('rolling');
+      void die.offsetWidth;
+      die.classList.add('rolling');
 
-      // Rapidly cycle through faces during animation
+      // Cycle through random faces during animation
       let ticks = 0;
-      const maxTicks = 8;
       const interval = setInterval(() => {
-        dieEl.textContent = faces[Math.floor(Math.random() * faces.length)];
-        // Re-add badge (textContent clears children)
-        const badge = document.createElement('div');
-        badge.className = 'dup-badge';
-        badge.id = `dup-${index}`;
-        dieEl.appendChild(badge);
+        textEl.textContent = faces[Math.floor(Math.random() * faces.length)];
         ticks++;
-        if (ticks >= maxTicks) clearInterval(interval);
+        if (ticks >= 8) clearInterval(interval);
       }, 60);
 
       setTimeout(() => {
         clearInterval(interval);
-        dieEl.classList.remove('rolling');
-        dieEl.textContent = finalValue;
+        die.classList.remove('rolling');
+        textEl.textContent = finalValue;
         results[index] = finalValue;
-        // Re-add badge
-        const badge = document.createElement('div');
-        badge.className = 'dup-badge';
-        badge.id = `dup-${index}`;
-        dieEl.appendChild(badge);
         updateDuplicates();
       }, 600 + delay);
     }
@@ -316,7 +310,7 @@
       if (isRolling) return;
       isRolling = true;
       rollNumber++;
-      document.getElementById('rollCount').textContent = `Roll #${rollNumber}`;
+      document.getElementById('rollCount').textContent = 'Roll #' + rollNumber;
 
       const newResults = DICE.map((_, i) => rollOneDie(i));
 
@@ -324,21 +318,18 @@
         animateDie(i, newResults[i], i * 50);
       });
 
-      // Unlock after all animations finish
-      setTimeout(() => { isRolling = false; }, 600 + 7 * 50 + 50);
+      setTimeout(() => { isRolling = false; }, 600 + 7 * 50 + 100);
     }
 
     function rollSingleDie(index) {
       if (isRolling) return;
       isRolling = true;
-      const newVal = rollOneDie(index);
-      animateDie(index, newVal, 0);
-      setTimeout(() => { isRolling = false; }, 700);
+      animateDie(index, rollOneDie(index), 0);
+      setTimeout(() => { isRolling = false; }, 750);
     }
 
     document.getElementById('rollBtn').addEventListener('click', rollAllDice);
 
-    // Space/Enter to roll
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space' || e.code === 'Enter') {
         e.preventDefault();
