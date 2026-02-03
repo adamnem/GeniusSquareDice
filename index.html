@@ -15,135 +15,192 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       padding: 20px;
+      user-select: none;
     }
 
     h1 {
-      font-size: 1.8rem;
-      margin-bottom: 8px;
-      color: #e94560;
+      font-size: 2rem;
+      margin-bottom: 6px;
+      color: #fff;
+      letter-spacing: 1px;
     }
 
     .subtitle {
-      color: #888;
-      margin-bottom: 24px;
-      font-size: 0.95rem;
+      color: #777;
+      margin-bottom: 36px;
+      font-size: 0.9rem;
     }
 
-    .grid-container {
-      display: grid;
-      grid-template-columns: auto repeat(6, 1fr);
-      grid-template-rows: auto repeat(6, 1fr);
-      gap: 3px;
-      margin-bottom: 28px;
-      width: min(360px, 90vw);
-      height: min(360px, 90vw);
-    }
-
-    .grid-label {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 1rem;
-      color: #aaa;
-    }
-
-    .grid-corner { /* top-left empty cell */ }
-
-    .grid-cell {
-      background: #16213e;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      color: #16213e;
-      transition: background 0.3s, color 0.3s, transform 0.3s;
-      aspect-ratio: 1;
-    }
-
-    .grid-cell.blocker {
-      background: #e94560;
-      color: #fff;
-      transform: scale(1.05);
-      box-shadow: 0 0 12px rgba(233, 69, 96, 0.5);
-    }
-
-    .dice-row {
+    .dice-tray {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 20px;
       justify-content: center;
-      margin-bottom: 28px;
+      margin-bottom: 36px;
+      max-width: 600px;
+      perspective: 600px;
+    }
+
+    .die-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .die-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      opacity: 0.6;
     }
 
     .die {
-      width: 64px;
-      height: 64px;
-      background: #0f3460;
-      border-radius: 12px;
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #e94560;
-      border: 2px solid #1a1a4e;
-      transition: transform 0.3s, background 0.3s;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s;
+      /* realistic die look */
+      box-shadow:
+        inset 0 -4px 6px rgba(0,0,0,0.25),
+        inset 0 2px 4px rgba(255,255,255,0.15),
+        0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    .die:hover { transform: translateY(-2px); }
+    .die:active { transform: translateY(1px); }
+
+    /* Pips-style dots in corners for realism */
+    .die::before {
+      content: '';
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+    }
+    .die::after {
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
     }
 
     .die.rolling {
-      animation: shake 0.4s ease-in-out;
+      animation: tumble 0.6s ease-out;
     }
 
-    @keyframes shake {
-      0%   { transform: rotate(0deg) scale(1); }
-      20%  { transform: rotate(-15deg) scale(1.1); }
-      40%  { transform: rotate(12deg) scale(1.1); }
-      60%  { transform: rotate(-8deg) scale(1.05); }
-      80%  { transform: rotate(5deg) scale(1.02); }
-      100% { transform: rotate(0deg) scale(1); }
+    @keyframes tumble {
+      0%   { transform: rotateX(0deg) rotateZ(0deg) scale(1); }
+      15%  { transform: rotateX(90deg) rotateZ(45deg) scale(1.1); }
+      30%  { transform: rotateX(180deg) rotateZ(-30deg) scale(1.05); }
+      50%  { transform: rotateX(300deg) rotateZ(60deg) scale(1.1); }
+      70%  { transform: rotateX(400deg) rotateZ(-20deg) scale(1.03); }
+      85%  { transform: rotateX(350deg) rotateZ(10deg) scale(1.01); }
+      100% { transform: rotateX(360deg) rotateZ(0deg) scale(1); }
     }
+
+    /* 7 distinct die colors */
+    .die-0 { background: #e63946; } /* red */
+    .die-1 { background: #e07b00; } /* orange */
+    .die-2 { background: #2a9d2a; } /* green */
+    .die-3 { background: #2576d4; } /* blue */
+    .die-4 { background: #9b5de5; } /* purple */
+    .die-5 { background: #d4458b; } /* pink */
+    .die-6 { background: #555;    } /* grey */
 
     .roll-btn {
       background: #e94560;
       color: #fff;
       border: none;
-      padding: 14px 48px;
-      font-size: 1.2rem;
+      padding: 16px 56px;
+      font-size: 1.3rem;
       font-weight: 700;
-      border-radius: 12px;
+      border-radius: 14px;
       cursor: pointer;
       transition: background 0.2s, transform 0.1s;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 16px rgba(233, 69, 96, 0.4);
     }
 
     .roll-btn:hover { background: #c73652; }
     .roll-btn:active { transform: scale(0.97); }
 
     .roll-count {
-      margin-top: 16px;
-      color: #666;
+      margin-top: 18px;
+      color: #555;
       font-size: 0.85rem;
     }
+
+    .hint {
+      margin-top: 10px;
+      color: #444;
+      font-size: 0.75rem;
+    }
+
+    /* Duplicate warning */
+    .die .dup-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ff0;
+      color: #333;
+      font-size: 0.55rem;
+      font-weight: 800;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      display: none;
+    }
+
+    .die .dup-badge.visible {
+      display: flex;
+    }
+
+    /* Stagger dice animation delays */
+    .die-wrapper:nth-child(1) .die.rolling { animation-delay: 0s; }
+    .die-wrapper:nth-child(2) .die.rolling { animation-delay: 0.05s; }
+    .die-wrapper:nth-child(3) .die.rolling { animation-delay: 0.1s; }
+    .die-wrapper:nth-child(4) .die.rolling { animation-delay: 0.15s; }
+    .die-wrapper:nth-child(5) .die.rolling { animation-delay: 0.2s; }
+    .die-wrapper:nth-child(6) .die.rolling { animation-delay: 0.25s; }
+    .die-wrapper:nth-child(7) .die.rolling { animation-delay: 0.3s; }
   </style>
 </head>
 <body>
   <h1>Genius Square Dice</h1>
-  <p class="subtitle">Roll 7 dice to place blockers on the board</p>
+  <p class="subtitle">Roll 7 dice for blocker coordinates</p>
 
-  <div class="grid-container" id="grid"></div>
+  <div class="dice-tray" id="diceTray"></div>
 
-  <div class="dice-row" id="dice"></div>
-
-  <button class="roll-btn" id="rollBtn">Roll Dice</button>
+  <button class="roll-btn" id="rollBtn">Roll All</button>
   <p class="roll-count" id="rollCount"></p>
+  <p class="hint">Click a single die to re-roll it</p>
 
   <script>
-    // Genius Square dice definitions (columns A-F, rows 1-6)
-    // Each die has 6 faces with grid coordinates
+    // Official Genius Square dice faces
+    // Each die has 6 faces; duplicates are intentional (affects probability)
     const DICE = [
       ['A1', 'C1', 'D1', 'D2', 'E2', 'F3'],
       ['A2', 'B2', 'C2', 'A3', 'B1', 'B3'],
@@ -154,108 +211,143 @@
       ['F1', 'F1', 'F1', 'A6', 'A6', 'A6'],
     ];
 
-    const COLS = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const ROWS = ['1', '2', '3', '4', '5', '6'];
+    const DIE_NAMES = ['Die 1', 'Die 2', 'Die 3', 'Die 4', 'Die 5', 'Die 6', 'Die 7'];
 
     let rollNumber = 0;
-    let currentBlockers = [];
+    let results = new Array(7).fill('?');
+    let isRolling = false;
 
-    // Build grid
-    const gridEl = document.getElementById('grid');
+    // Build dice UI
+    const tray = document.getElementById('diceTray');
 
-    // Corner cell
-    const corner = document.createElement('div');
-    corner.className = 'grid-corner grid-label';
-    gridEl.appendChild(corner);
+    DICE.forEach((faces, i) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'die-wrapper';
 
-    // Column headers
-    COLS.forEach(col => {
       const label = document.createElement('div');
-      label.className = 'grid-label';
-      label.textContent = col;
-      gridEl.appendChild(label);
-    });
+      label.className = 'die-label';
+      label.textContent = DIE_NAMES[i];
 
-    // Rows
-    ROWS.forEach(row => {
-      // Row label
-      const label = document.createElement('div');
-      label.className = 'grid-label';
-      label.textContent = row;
-      gridEl.appendChild(label);
-
-      // Cells
-      COLS.forEach(col => {
-        const cell = document.createElement('div');
-        cell.className = 'grid-cell';
-        cell.id = `cell-${col}${row}`;
-        cell.dataset.coord = `${col}${row}`;
-        gridEl.appendChild(cell);
-      });
-    });
-
-    // Build dice display
-    const diceEl = document.getElementById('dice');
-    DICE.forEach((_, i) => {
       const die = document.createElement('div');
-      die.className = 'die';
+      die.className = `die die-${i}`;
       die.id = `die-${i}`;
       die.textContent = '?';
-      diceEl.appendChild(die);
+
+      // Duplicate badge
+      const badge = document.createElement('div');
+      badge.className = 'dup-badge';
+      badge.id = `dup-${i}`;
+      badge.textContent = '2x';
+      die.appendChild(badge);
+
+      // Click individual die to re-roll just that one
+      die.addEventListener('click', (e) => {
+        e.stopPropagation();
+        rollSingleDie(i);
+      });
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(die);
+      tray.appendChild(wrapper);
     });
 
-    // Roll logic
-    function rollDice() {
+    function rollOneDie(index) {
+      const faces = DICE[index];
+      return faces[Math.floor(Math.random() * faces.length)];
+    }
+
+    function updateDuplicates() {
+      // Find duplicate coordinates
+      const counts = {};
+      results.forEach((r, i) => {
+        if (r !== '?' && r !== '...') {
+          counts[r] = (counts[r] || 0) + 1;
+        }
+      });
+
+      results.forEach((r, i) => {
+        const badge = document.getElementById(`dup-${i}`);
+        if (r !== '?' && r !== '...' && counts[r] > 1) {
+          badge.textContent = `${counts[r]}x`;
+          badge.classList.add('visible');
+        } else {
+          badge.classList.remove('visible');
+        }
+      });
+    }
+
+    function animateDie(index, finalValue, delay) {
+      const dieEl = document.getElementById(`die-${index}`);
+      const faces = DICE[index];
+
+      dieEl.classList.remove('rolling');
+      void dieEl.offsetWidth;
+      dieEl.classList.add('rolling');
+
+      // Rapidly cycle through faces during animation
+      let ticks = 0;
+      const maxTicks = 8;
+      const interval = setInterval(() => {
+        dieEl.textContent = faces[Math.floor(Math.random() * faces.length)];
+        // Re-add badge (textContent clears children)
+        const badge = document.createElement('div');
+        badge.className = 'dup-badge';
+        badge.id = `dup-${index}`;
+        dieEl.appendChild(badge);
+        ticks++;
+        if (ticks >= maxTicks) clearInterval(interval);
+      }, 60);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        dieEl.classList.remove('rolling');
+        dieEl.textContent = finalValue;
+        results[index] = finalValue;
+        // Re-add badge
+        const badge = document.createElement('div');
+        badge.className = 'dup-badge';
+        badge.id = `dup-${index}`;
+        dieEl.appendChild(badge);
+        updateDuplicates();
+      }, 600 + delay);
+    }
+
+    function rollAllDice() {
+      if (isRolling) return;
+      isRolling = true;
       rollNumber++;
       document.getElementById('rollCount').textContent = `Roll #${rollNumber}`;
 
-      // Clear previous blockers
-      currentBlockers.forEach(coord => {
-        const cell = document.getElementById(`cell-${coord}`);
-        if (cell) {
-          cell.classList.remove('blocker');
-          cell.textContent = '';
-        }
-      });
-      currentBlockers = [];
+      const newResults = DICE.map((_, i) => rollOneDie(i));
 
-      // Roll each die
-      const results = DICE.map(faces => faces[Math.floor(Math.random() * faces.length)]);
-
-      // Animate dice
       DICE.forEach((_, i) => {
-        const dieEl = document.getElementById(`die-${i}`);
-        dieEl.classList.remove('rolling');
-        // Force reflow to restart animation
-        void dieEl.offsetWidth;
-        dieEl.classList.add('rolling');
-        dieEl.textContent = '...';
+        animateDie(i, newResults[i], i * 50);
       });
 
-      // Show results after animation
-      setTimeout(() => {
-        results.forEach((coord, i) => {
-          const dieEl = document.getElementById(`die-${i}`);
-          dieEl.classList.remove('rolling');
-          dieEl.textContent = coord;
-
-          // Mark cell as blocker (handle duplicates gracefully)
-          const cell = document.getElementById(`cell-${coord}`);
-          if (cell) {
-            cell.classList.add('blocker');
-            cell.textContent = coord;
-            if (!currentBlockers.includes(coord)) {
-              currentBlockers.push(coord);
-            }
-          }
-        });
-      }, 400);
+      // Unlock after all animations finish
+      setTimeout(() => { isRolling = false; }, 600 + 7 * 50 + 50);
     }
 
-    document.getElementById('rollBtn').addEventListener('click', rollDice);
+    function rollSingleDie(index) {
+      if (isRolling) return;
+      isRolling = true;
+      const newVal = rollOneDie(index);
+      animateDie(index, newVal, 0);
+      setTimeout(() => { isRolling = false; }, 700);
+    }
+
+    document.getElementById('rollBtn').addEventListener('click', rollAllDice);
+
+    // Space/Enter to roll
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        e.preventDefault();
+        rollAllDice();
+      }
+    });
 
     // Roll once on load
-    rollDice();
+    rollAllDice();
   </script>
 </body>
 </html>
