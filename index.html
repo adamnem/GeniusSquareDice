@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genius Square Dice Roller</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+      color: #e94560;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto repeat(6, 1fr);
+      grid-template-rows: auto repeat(6, 1fr);
+      gap: 3px;
+      margin-bottom: 28px;
+      width: min(360px, 90vw);
+      height: min(360px, 90vw);
+    }
+
+    .grid-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #aaa;
+    }
+
+    .grid-corner { /* top-left empty cell */ }
+
+    .grid-cell {
+      background: #16213e;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #16213e;
+      transition: background 0.3s, color 0.3s, transform 0.3s;
+      aspect-ratio: 1;
+    }
+
+    .grid-cell.blocker {
+      background: #e94560;
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(233, 69, 96, 0.5);
+    }
+
+    .dice-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    .die {
+      width: 64px;
+      height: 64px;
+      background: #0f3460;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #e94560;
+      border: 2px solid #1a1a4e;
+      transition: transform 0.3s, background 0.3s;
+    }
+
+    .die.rolling {
+      animation: shake 0.4s ease-in-out;
+    }
+
+    @keyframes shake {
+      0%   { transform: rotate(0deg) scale(1); }
+      20%  { transform: rotate(-15deg) scale(1.1); }
+      40%  { transform: rotate(12deg) scale(1.1); }
+      60%  { transform: rotate(-8deg) scale(1.05); }
+      80%  { transform: rotate(5deg) scale(1.02); }
+      100% { transform: rotate(0deg) scale(1); }
+    }
+
+    .roll-btn {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      padding: 14px 48px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.5px;
+    }
+
+    .roll-btn:hover { background: #c73652; }
+    .roll-btn:active { transform: scale(0.97); }
+
+    .roll-count {
+      margin-top: 16px;
+      color: #666;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Genius Square Dice</h1>
+  <p class="subtitle">Roll 7 dice to place blockers on the board</p>
+
+  <div class="grid-container" id="grid"></div>
+
+  <div class="dice-row" id="dice"></div>
+
+  <button class="roll-btn" id="rollBtn">Roll Dice</button>
+  <p class="roll-count" id="rollCount"></p>
+
+  <script>
+    // Genius Square dice definitions (columns A-F, rows 1-6)
+    // Each die has 6 faces with grid coordinates
+    const DICE = [
+      ['A1', 'C1', 'D1', 'D2', 'E2', 'F3'],
+      ['A2', 'B2', 'C2', 'A3', 'B1', 'B3'],
+      ['C3', 'D3', 'E3', 'B4', 'C4', 'D4'],
+      ['E1', 'F2', 'F2', 'B6', 'A5', 'A5'],
+      ['A4', 'B5', 'C6', 'C5', 'D6', 'F6'],
+      ['E4', 'F4', 'E5', 'F5', 'D5', 'E6'],
+      ['F1', 'F1', 'F1', 'A6', 'A6', 'A6'],
+    ];
+
+    const COLS = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const ROWS = ['1', '2', '3', '4', '5', '6'];
+
+    let rollNumber = 0;
+    let currentBlockers = [];
+
+    // Build grid
+    const gridEl = document.getElementById('grid');
+
+    // Corner cell
+    const corner = document.createElement('div');
+    corner.className = 'grid-corner grid-label';
+    gridEl.appendChild(corner);
+
+    // Column headers
+    COLS.forEach(col => {
+      const label = document.createElement('div');
+      label.className = 'grid-label';
+      label.textContent = col;
+      gridEl.appendChild(label);
+    });
+
+    // Rows
+    ROWS.forEach(row => {
+      // Row label
+      const label = document.createElement('div');
+      label.className = 'grid-label';
+      label.textContent = row;
+      gridEl.appendChild(label);
+
+      // Cells
+      COLS.forEach(col => {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        cell.id = `cell-${col}${row}`;
+        cell.dataset.coord = `${col}${row}`;
+        gridEl.appendChild(cell);
+      });
+    });
+
+    // Build dice display
+    const diceEl = document.getElementById('dice');
+    DICE.forEach((_, i) => {
+      const die = document.createElement('div');
+      die.className = 'die';
+      die.id = `die-${i}`;
+      die.textContent = '?';
+      diceEl.appendChild(die);
+    });
+
+    // Roll logic
+    function rollDice() {
+      rollNumber++;
+      document.getElementById('rollCount').textContent = `Roll #${rollNumber}`;
+
+      // Clear previous blockers
+      currentBlockers.forEach(coord => {
+        const cell = document.getElementById(`cell-${coord}`);
+        if (cell) {
+          cell.classList.remove('blocker');
+          cell.textContent = '';
+        }
+      });
+      currentBlockers = [];
+
+      // Roll each die
+      const results = DICE.map(faces => faces[Math.floor(Math.random() * faces.length)]);
+
+      // Animate dice
+      DICE.forEach((_, i) => {
+        const dieEl = document.getElementById(`die-${i}`);
+        dieEl.classList.remove('rolling');
+        // Force reflow to restart animation
+        void dieEl.offsetWidth;
+        dieEl.classList.add('rolling');
+        dieEl.textContent = '...';
+      });
+
+      // Show results after animation
+      setTimeout(() => {
+        results.forEach((coord, i) => {
+          const dieEl = document.getElementById(`die-${i}`);
+          dieEl.classList.remove('rolling');
+          dieEl.textContent = coord;
+
+          // Mark cell as blocker (handle duplicates gracefully)
+          const cell = document.getElementById(`cell-${coord}`);
+          if (cell) {
+            cell.classList.add('blocker');
+            cell.textContent = coord;
+            if (!currentBlockers.includes(coord)) {
+              currentBlockers.push(coord);
+            }
+          }
+        });
+      }, 400);
+    }
+
+    document.getElementById('rollBtn').addEventListener('click', rollDice);
+
+    // Roll once on load
+    rollDice();
+  </script>
+</body>
+</html>
